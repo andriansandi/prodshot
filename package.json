@@ -1,0 +1,24 @@
+{
+  "name": "product-images",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Resize & center product images for WooCommerce / online store",
+  "scripts": {
+    "clean": "node -e \"const fs=require('fs');fs.rmSync('output',{recursive:true,force:true})\"",
+    "resize": "node resize_product.js",
+    "preresize": "npm run clean",
+    "resize:example": "node resize_product.js source/original.png output/result_new.png --size 300 --padding 0.30",
+    "preresize:example": "npm run clean",
+    "resize:batch": "node resize_product.js source/ output/ --size 1000 --padding 0.15",
+    "preresize:batch": "npm run clean",
+    "resize:white": "node resize_product.js source/original.png output/white.png --size 1200 --padding 0.20 --bg \"#ffffff\"",
+    "preresize:white": "npm run clean",
+    "resize:webp": "node resize_product.js source/ output/ --format webp --quality 80",
+    "preresize:webp": "npm run clean",
+    "resize:jpeg": "node resize_product.js source/ output/ --format jpeg --quality 82 --bg \"#ffffff\"",
+    "preresize:jpeg": "npm run clean"
+  },
+  "dependencies": {
+    "sharp": "^0.34.0"
+  }
+}
