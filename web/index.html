@@ -158,6 +158,37 @@
 
     .hidden-input { display: none; }
 
+    .url-fetch {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .url-input-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .url-input-row input[type="url"] {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .url-input-row .btn {
+      width: auto;
+      padding: 10px 18px;
+      flex-shrink: 0;
+    }
+
+    .url-error {
+      display: none;
+      margin-top: 10px;
+      color: #dc2626;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
     /* Ads hidden — enable after ad network approval + domain */
     .ad-slot, .ad-side { display: none !important; }
 
@@ -724,6 +755,14 @@
       </div>
       <input type="file" id="fileInput" class="hidden-input" accept="image/png,image/jpeg,image/jpg,image/webp,image/bmp" multiple />
 
+      <div class="url-fetch">
+        <div class="url-input-row">
+          <input type="url" id="urlInput" placeholder="Paste image URL…" autocomplete="off" />
+          <button class="btn btn-secondary" id="fetchBtn">Fetch</button>
+        </div>
+        <div class="url-error" id="urlError" role="alert"></div>
+      </div>
+
       <div class="workspace" id="workspace" style="display: none;">
         <div class="controls">
           <h2>Settings</h2>
@@ -849,6 +888,9 @@
       const transparentInput = document.getElementById('transparentInput');
       const downloadBtn = document.getElementById('downloadBtn');
       const viewButtons = document.querySelectorAll('.view-toggle button');
+      const urlInput = document.getElementById('urlInput');
+      const fetchBtn = document.getElementById('fetchBtn');
+      const urlError = document.getElementById('urlError');
 
       let files = [];
       let results = [];
@@ -1188,6 +1230,69 @@
         }, 200);
       }
 
+      function filenameFromUrl(url) {
+        try {
+          const u = new URL(url);
+          const seg = u.pathname.split('/').pop();
+          if (seg) return decodeURIComponent(seg).replace(/[^a-z0-9_.-]/gi, '_');
+        } catch (e) {}
+        return 'fetched-image';
+      }
+
+      function showUrlError(message) {
+        urlError.textContent = message;
+        urlError.style.display = 'block';
+        clearTimeout(urlError._timer);
+        urlError._timer = setTimeout(() => { urlError.style.display = 'none'; }, 5000);
+      }
+
+      async function fetchFromUrl(url) {
+        let response;
+        try {
+          response = await fetch(url, { mode: 'cors' });
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+        } catch (err) {
+          const withoutProtocol = url.replace(/^https?:\/\//, '');
+          const proxyUrl = 'https://images.weserv.nl/?url=' + encodeURIComponent(withoutProtocol);
+          try {
+            response = await fetch(proxyUrl, { mode: 'cors' });
+            if (!response.ok) throw new Error('Proxy HTTP ' + response.status);
+          } catch (proxyErr) {
+            throw new Error('Could not fetch this image. It may be blocked by CORS or the URL is invalid.');
+          }
+        }
+
+        const blob = await response.blob();
+        const filename = filenameFromUrl(url);
+        const ext = filename.split('.').pop() || 'png';
+        const contentType = response.headers.get('content-type') || '';
+        const type = contentType.startsWith('image/') ? contentType : ('image/' + ext);
+        return new File([blob], filename, { type });
+      }
+
+      async function onFetchUrl() {
+        const url = urlInput.value.trim();
+        if (!url) return;
+
+        urlInput.disabled = true;
+        fetchBtn.disabled = true;
+        const originalText = fetchBtn.textContent;
+        fetchBtn.textContent = 'Fetching…';
+        urlError.style.display = 'none';
+
+        try {
+          const file = await fetchFromUrl(url);
+          handleFiles([file]);
+          urlInput.value = '';
+        } catch (err) {
+          showUrlError(err.message || 'Could not fetch this image. It may be blocked by CORS or the URL is invalid.');
+        } finally {
+          urlInput.disabled = false;
+          fetchBtn.disabled = false;
+          fetchBtn.textContent = originalText;
+        }
+      }
+
       function handleFiles(newFiles) {
         const accepted = Array.from(newFiles).filter(f => /image\/(png|jpeg|jpg|webp|bmp)/i.test(f.type));
         if (!accepted.length) {
@@ -1240,6 +1345,9 @@
       });
 
       fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+      fetchBtn.addEventListener('click', onFetchUrl);
+      urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') onFetchUrl(); });
 
       sizeInput.addEventListener('input', scheduleProcess);
       paddingInput.addEventListener('input', () => {
