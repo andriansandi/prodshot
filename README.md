@@ -1,4 +1,4 @@
-# Product Image Resizer
+# Prodshot
 
 Resize & center product images for WooCommerce / online stores. The product is
 trimmed (background removed), scaled preserving aspect ratio, then placed at the

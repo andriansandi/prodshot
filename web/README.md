@@ -1,0 +1,1 @@
+This is the browser-based web tool for the Product Image Resizer. Open `index.html` directly in any modern web browser — no server, build step, or internet connection is required. All image processing happens locally in the browser using the Canvas API.
