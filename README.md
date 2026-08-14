@@ -1,4 +1,12 @@
-# Prodshot
+<p align="center">
+  <img src="web/favicon.svg" width="80" height="80" alt="prodshot logo" />
+</p>
+
+<h1 align="center">prodshot</h1>
+
+<p align="center">Resize & center product images for WooCommerce / online stores — entirely in your browser.</p>
+
+---
 
 Resize & center product images for WooCommerce / online stores. The product is
 trimmed (background removed), scaled preserving aspect ratio, then placed at the
