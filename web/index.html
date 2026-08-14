@@ -132,7 +132,7 @@
     }
 
     .batch-thumb {
-      @apply checkerboard-sm h-40 flex items-center justify-center;
+      @apply h-40 flex items-center justify-center;
     }
 
     .batch-thumb img,
@@ -632,7 +632,7 @@
           item.className = 'batch-item';
 
           const thumb = document.createElement('div');
-          thumb.className = 'batch-thumb';
+          thumb.className = 'batch-thumb checkerboard-sm';
           const canvas = document.createElement('canvas');
           canvas.width = res.resultCanvas.width;
           canvas.height = res.resultCanvas.height;
